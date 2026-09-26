@@ -66,5 +66,3 @@ This first version supports Linux CPU/serial execution. Perlmutter allocations,
 GPU/MPI testing, HTML reports, and optional GitHub commit-status posting are not
 implemented. Unsupported flags fail explicitly. No GitHub token file is needed;
 private fetches use your existing Git credentials.
-
-Run the orchestration checks with `python3 -m unittest discover -s ci/tests -v`.

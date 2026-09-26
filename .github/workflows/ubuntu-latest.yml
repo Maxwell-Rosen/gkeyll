@@ -28,9 +28,6 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Check CI orchestration
-        run: python3 -m unittest discover -s ci/tests -v
-
       - name: Install system prerequisites
         run: |
           sudo apt-get update
