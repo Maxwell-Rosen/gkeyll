@@ -21,10 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set CI paths
+      - name: Set CI paths and parallelism
         run: |
           echo "CI_PATH=$RUNNER_TEMP/gkeyll-ci" >> "$GITHUB_ENV"
           echo "CI_LOG_DIR=$RUNNER_TEMP/gkeyll-ci-logs" >> "$GITHUB_ENV"
+          echo "CI_JOBS=$(nproc)" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
 
@@ -54,7 +55,7 @@ jobs:
 
       - name: Test core-valcheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: ci/make-valcheck.sh core
+        run: ci/make-valcheck.sh core "$CI_JOBS"
 
       - name: Build moments-unit
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
@@ -70,7 +71,7 @@ jobs:
 
       - name: Test moments-valcheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: ci/make-valcheck.sh moments
+        run: ci/make-valcheck.sh moments "$CI_JOBS"
 
       - name: Build vlasov-unit
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
@@ -86,7 +87,7 @@ jobs:
 
       - name: Test vlasov-valcheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: ci/make-valcheck.sh vlasov
+        run: ci/make-valcheck.sh vlasov "$CI_JOBS"
 
       - name: Build gyrokinetic-unit
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
@@ -102,7 +103,7 @@ jobs:
 
       - name: Test gyrokinetic-valcheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: ci/make-valcheck.sh gyrokinetic
+        run: ci/make-valcheck.sh gyrokinetic "$CI_JOBS"
 
       - name: Build pkpm-unit
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
@@ -118,7 +119,7 @@ jobs:
 
       - name: Test pkpm-valcheck
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: ci/make-valcheck.sh pkpm
+        run: ci/make-valcheck.sh pkpm "$CI_JOBS"
 
       - name: Compare regressions against main
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

@@ -45,6 +45,9 @@ to test other modules; setup/install failures stop the pipeline immediately.
 
 Actions uses the same stages and helpers:
 
+The Ubuntu workflow sets `CI_JOBS` to `nproc`, using all available CPUs for
+dependency builds, compilation, unit tests, Valgrind, and regression concurrency.
+
 ```bash
 export CI_PATH=/tmp/gkeyll-ci CI_LOG_DIR=/tmp/gkeyll-ci-logs
 bash ci/run.sh --build_deps --stage prepare
