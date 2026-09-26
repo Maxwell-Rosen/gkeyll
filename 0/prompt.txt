@@ -1,0 +1,1 @@
+In '/home/maxwell-rosen/gkeyll-fork/ci/make-check.sh', I want to have it display the output of make check as it builds in real time. I want it to print everything into the terminal
