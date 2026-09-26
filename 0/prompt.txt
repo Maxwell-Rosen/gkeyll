@@ -1,0 +1,11 @@
+Make sure that the ubuntu-latest CI is using the maximum amount of paralellism it can. I believe this has 4 CPUs. 
+Virtual machine / container	Processor (CPU)	Memory (RAM)	Storage (SSD)	Architecture	Workflow label
+Linux	1	5 GB	14 GB	x64	ubuntu-slim
+Linux	4	16 GB	14 GB	x64	ubuntu-latest, ubuntu-24.04, ubuntu-22.04, ubuntu-26.04
+
+---
+
+Make sure that the ubuntu-latest CI is using the maximum amount of paralellism it can. I believe this has 4 CPUs. 
+Virtual machine / container	Processor (CPU)	Memory (RAM)	Storage (SSD)	Architecture	Workflow label
+Linux	1	5 GB	14 GB	x64	ubuntu-slim
+Linux	4	16 GB	14 GB	x64	ubuntu-latest, ubuntu-24.04, ubuntu-22.04, ubuntu-26.04
