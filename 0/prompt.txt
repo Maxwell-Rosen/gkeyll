@@ -1,0 +1,29 @@
+The build in CI is taking a long time. For instance, the vlasov build took 20 minutes. On this laptop, it's much faster, even when using -j 4 . Explain this discrepency in the build times. Core took 52 seconds, moments took 27, gyrokinetics took 12m 23s, pkpm took 36 s. This is the ubuntu latest build
+
+---
+
+The build in CI is taking a long time. For instance, the vlasov build took 20 minutes. On this laptop, it's much faster, even when using -j 4 . Explain this discrepency in the build times. Core took 52 seconds, moments took 27, gyrokinetics took 12m 23s, pkpm took 36 s. This is the ubuntu latest build
+
+---
+
+Assess what we can do to accelerate this building process
+
+---
+
+Assess what we can do to accelerate this building process
+
+---
+
+On the other hand, the mac build takes far less time. What is the big difference? https://github.com/gkeyllorg/gkeyll/actions/runs/36207874442/job/108308132178
+
+---
+
+On the other hand, the mac build takes far less time. What is the big difference? https://github.com/gkeyllorg/gkeyll/actions/runs/36207874442/job/108308132178
+
+---
+
+Let's trial clang in ubuntu CI
+
+---
+
+Let's trial clang in ubuntu CI
