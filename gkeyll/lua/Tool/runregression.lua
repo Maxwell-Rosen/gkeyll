@@ -146,7 +146,7 @@ end
 local layerCounts = {}
 for _, L in ipairs(LAYERS) do
    layerCounts[L.name] = {
-      total = 0, passed = 0, failed = 0,
+      total = 0, passed = 0, failed = 0, created = 0,
    }
 end
 
@@ -1493,6 +1493,7 @@ local function create_action(test, runDir, testType)
    os.execute(string.format("rm -f '%s'/*.gkyl 2>/dev/null", aDir))
    -- Copy all .gkyl output files from the scratch directory to the accepted dir.
    os.execute(string.format("cp -f '%s'/*.gkyl '%s/' 2>/dev/null", runDir, aDir))
+   layerCounts[test.layer].created = layerCounts[test.layer].created + 1
    return -2
 end
 
@@ -1870,8 +1871,8 @@ local function finalizeRegressionRun()
          insertRegressionMeta(layer.name, runID, runDate,
             cnt.total, cnt.passed, cnt.failed, runMode)
          local summary = string.format(
-            "  Layer %-12s  mode=%-12s total=%d  passed=%d  failed=%d",
-            layer.name, runMode, cnt.total, cnt.passed, cnt.failed)
+            "  Layer %-12s  mode=%-12s total=%d  created=%d  passed=%d  failed=%d",
+            layer.name, runMode, cnt.total, cnt.created, cnt.passed, cnt.failed)
          log(summary .. "\n")
       end
    end

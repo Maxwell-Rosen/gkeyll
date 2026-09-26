@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Turn runregression SQLite results into an exit status and named failures."""
 from pathlib import Path
+from collections import Counter
 import sqlite3
 import sys
 
@@ -22,10 +23,15 @@ def check(root, mode):
                 rows = db.execute("select name, test_type, status from RegressionData where guid=?", latest).fetchall()
                 if not rows:
                     raise ValueError("latest run has no results")
+                counts = Counter(status for _, _, status in rows)
+                print(f"Regression {mode} {module}: total={len(rows)} "
+                      f"created={counts[-2]} passed={counts[1]} skipped={counts[-1]} "
+                      f"failed={sum(count for status, count in counts.items() if status not in allowed)}")
                 for name, kind, status in rows:
                     completed += status in {-2, 1}
                     if status not in allowed:
-                        print(f"REGRESSION FAIL {module}/{name} ({kind}): {statuses.get(status, status)}")
+                        label = name if name.startswith(module + "/") else f"{module}/{name}"
+                        print(f"REGRESSION FAIL {label} ({kind}): {statuses.get(status, status)}")
                         failed = True
         except (sqlite3.Error, ValueError) as error:
             print(f"REGRESSION FAIL {module}: {error}")

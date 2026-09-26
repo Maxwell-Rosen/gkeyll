@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 import shutil
+import sqlite3
 import subprocess
 import tempfile
 import unittest
@@ -107,6 +108,87 @@ class WorkflowTests(unittest.TestCase):
         summary = (self.root / "logs/summary.txt").read_text()
         self.assertIn("FAIL compile (exit 7)", summary)
         self.assertIn("Compiler warnings: 1", summary)
+
+    def test_regression_counts_and_failures(self):
+        results = self.root / "results"
+        for module in ("moments", "vlasov", "gyrokinetic", "pkpm"):
+            directory = results / module
+            directory.mkdir(parents=True)
+            with sqlite3.connect(directory / "regressiondb") as db:
+                db.execute("create table RegressionMeta (guid text)")
+                db.execute("create table RegressionData (guid text, name text, test_type text, status integer)")
+                db.execute("insert into RegressionMeta values ('old')")
+                db.execute("insert into RegressionData values ('old', 'stale', 'c', -6)")
+                db.execute("insert into RegressionMeta values ('current')")
+                db.executemany("insert into RegressionData values ('current', ?, 'lua', ?)",
+                               [(f"{module}/luareg/created.lua", -2),
+                                (f"{module}/luareg/skipped.lua", -1)])
+        result = subprocess.run(["python3", str(CI / "check-regression.py"), str(results), "create"],
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("created=1 passed=0 skipped=1 failed=0", result.stdout)
+        self.assertIn("4 completed; PASS", result.stdout)
+        self.assertNotIn("stale", result.stdout)
+        with sqlite3.connect(results / "moments/regressiondb") as db:
+            db.execute("insert into RegressionData values ('current', 'moments/luareg/crash.lua', 'lua', -6)")
+        result = subprocess.run(["python3", str(CI / "check-regression.py"), str(results), "create"],
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("REGRESSION FAIL moments/luareg/crash.lua (lua): crash", result.stdout)
+        self.assertNotIn("moments/moments", result.stdout)
+
+    def test_candidate_runs_and_databases_survive_baseline_failure(self):
+        # Exercise the real shell orchestration and checker with tiny fake runs.
+        tools = self.root / "tools"
+        tools.mkdir()
+        git = tools / "git"
+        git.write_text("#!/usr/bin/env bash\n"
+                       'if [[ $1 == clone ]]; then mkdir -p "${@: -1}"; '
+                       'printf "#!/bin/sh\\nexit 0\\n" > "${@: -1}/configure"; '
+                       'chmod +x "${@: -1}/configure"; fi\n'
+                       'echo stub-revision\n')
+        git.chmod(0o755)
+        make = tools / "make"
+        make.write_text("#!/bin/sh\nexit 0\n")
+        make.chmod(0o755)
+        self.env["PATH"] = str(tools) + os.pathsep + self.env["PATH"]
+        manifest_path = Path("moments/luareg/lua_test_manifest.lua")
+        manifest = self.root / "build/source" / manifest_path
+        manifest.parent.mkdir(parents=True)
+        manifest.write_text('return { ignore = { tests = { "rt_known_failure" } } }\n')
+        for side in ("baseline-install", "install"):
+            exe = self.root / "build" / side / "gkeyll/bin/gkeyll"
+            exe.parent.mkdir(parents=True)
+            exe.write_text("""#!/usr/bin/env python3
+from pathlib import Path
+import sqlite3
+import sys
+root = Path(__file__).resolve().parents[2] / 'gkeyll-results'
+for module in ('moments', 'vlasov', 'gyrokinetic', 'pkpm'):
+    for suite in ('creg', 'luareg'):
+        (root / module / (suite + '-accepted')).mkdir(parents=True, exist_ok=True)
+if sys.argv[2] == 'run':
+    status = -6 if sys.argv[-1] == 'create' else 1
+    for module in ('moments', 'vlasov', 'gyrokinetic', 'pkpm'):
+        with sqlite3.connect(root / module / 'regressiondb') as db:
+            db.execute('create table RegressionMeta (guid text)')
+            db.execute('create table RegressionData (guid text, name text, test_type text, status integer)')
+            db.execute("insert into RegressionMeta values ('run')")
+            db.execute("insert into RegressionData values ('run', ?, 'c', ?)",
+                       (module + '/creg/test', status))
+""")
+            exe.chmod(0o755)
+        result = self.run_shell(f'bash "{CI}/runregression-against-main.sh"')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("Regression create: 0 completed; FAIL", result.stdout)
+        self.assertIn("Regression check: 4 completed; PASS", result.stdout)
+        self.assertEqual((self.root / "build/baseline-source" / manifest_path).read_text(),
+                         manifest.read_text())
+        logs = self.root / "logs"
+        self.assertEqual(len(list(logs.glob("*-regression.sqlite"))), 8)
+        summary = (logs / "summary.txt").read_text()
+        self.assertIn("Regression check moments: total=1 created=0 passed=1", summary)
+        self.assertIn("FAIL runregression", summary)
 
     def test_all_stages_attempted_after_prepare_and_install_fail(self):
         # Copy the real driver; stub only expensive stage implementations.

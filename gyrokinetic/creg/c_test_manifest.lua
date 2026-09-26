@@ -4,6 +4,9 @@
 return {
    ignore = {
       tests = {
+         -- STEP multiblock cases exceed the CPU CI runtime budget.
+         "rt_gk_multib_step_2x2v_p1",
+         "rt_gk_multib_step_nonuniform_2x2v_p1",
          "rt_gk_ltx_iwl_num_miller_3x2v_p1",
          "rt_gk_multib_asdex_solonly_3x2v_p1",
          "rt_gk_multib_nstx_solonly_3x2v_p1",

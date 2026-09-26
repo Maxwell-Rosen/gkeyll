@@ -30,7 +30,7 @@ ci_log() {
     {
         if ((rc)); then echo "FAIL $name (exit $rc)"; else echo "PASS $name"; fi
         # Include test names as well as the failed stage before the full output.
-        grep -E 'FAIL |\[ FAILED \]|has error issues or memory leaks|REGRESSION FAIL|^  (core|moments|vlasov|gyrokinetic|pkpm):' "$raw" || true
+        grep -E 'FAIL |\[ FAILED \]|has error issues or memory leaks|REGRESSION FAIL|^Regression (create|check)|^  (core|moments|vlasov|gyrokinetic|pkpm):' "$raw" || true
         printf '\nFull output:\n'
         cat "$raw"
     } > "$log"

@@ -32,11 +32,23 @@ The default pipeline prepares dependencies/configuration, installs all solvers,
 compiles each module's unit and C regression targets, runs unit tests and
 Valgrind, then runs the manifest-selected serial C and Lua regression suites
 against a separately built `origin/main`. `--baseline REF` selects another
-baseline on origin. Both baseline and candidate have a 120-second per-test
-regression timeout; timeouts fail CI. Skips in the manifests remain skips.
+baseline on origin. Both baseline and candidate have a 600-second per-test
+regression timeout; override it with `CI_REGRESSION_TIMEOUT` (positive seconds).
+Timeouts fail CI. Regression processes use one BLAS/OpenMP thread each because
+`CI_JOBS` already controls test concurrency. Skips in the manifests remain skips.
+The candidate's C/Lua selection manifests are used for both runs so a newly
+ignored test is also excluded from the main baseline. Baseline solver code and
+test inputs still come from the selected baseline revision.
 SQLite results are checked explicitly because runregression can exit successfully
 with failed tests. A newly added test without a baseline fails comparison.
 The baseline must support the current runregression interface and database schema.
+Baseline test failures do not prevent the candidate suite from running, but still
+fail the overall stage. Tests without accepted baseline output cannot pass comparison.
+Both baseline and candidate SQLite databases, including each test's runlog, are
+saved in the logs as `baseline-<module>-regression.sqlite` and
+`candidate-<module>-regression.sqlite`, including on failure. The summary reports
+created, passed, skipped, and failed counts separately: creating accepted results
+is successful baseline generation, not a passed numerical comparison.
 
 Use `--skip_valcheck` and/or `--skip_runregression` for a shorter local run.
 `--jobs N` controls compilation and regression concurrency (default half the
