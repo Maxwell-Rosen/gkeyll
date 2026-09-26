@@ -38,9 +38,41 @@ jobs:
         if: ${{ !cancelled() }}
         run: bash ci/run.sh --machine linux --build_deps --stage prepare
 
-      - name: Build and install all modules
+      - name: Build and install core
         if: ${{ !cancelled() }}
-        run: bash ci/run.sh --stage build
+        run: |
+          source ci/common.sh
+          ci_log core-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" core-install
+
+      - name: Build and install moments
+        if: ${{ !cancelled() }}
+        run: |
+          source ci/common.sh
+          ci_log moments-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" moments-install
+
+      - name: Build and install vlasov
+        if: ${{ !cancelled() }}
+        run: |
+          source ci/common.sh
+          ci_log vlasov-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" vlasov-install
+
+      - name: Build and install gyrokinetic
+        if: ${{ !cancelled() }}
+        run: |
+          source ci/common.sh
+          ci_log gyrokinetic-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" gyrokinetic-install
+
+      - name: Build and install pkpm
+        if: ${{ !cancelled() }}
+        run: |
+          source ci/common.sh
+          ci_log pkpm-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" pkpm-install
+
+      - name: Build and install gkeyll
+        if: ${{ !cancelled() }}
+        run: |
+          source ci/common.sh
+          ci_log gkeyll-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" gkeyll-install
 
       - name: Build core-unit
         if: ${{ !cancelled() }}
