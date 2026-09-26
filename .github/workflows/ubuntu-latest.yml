@@ -20,6 +20,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     env:
+      CC: clang
       # Use a CPU target and disable AVX instructions for Valgrind checks.
       ARCH_FLAGS: -march=skylake -mno-avx -mno-avx2 -mno-avx512f
 
@@ -35,7 +36,8 @@ jobs:
       - name: Install system prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential gfortran cmake curl git rsync valgrind python-is-python3 python3-numpy libsqlite3-dev libopenblas-dev
+          sudo apt-get install -y build-essential clang gfortran cmake curl git rsync valgrind python-is-python3 python3-numpy libsqlite3-dev libopenblas-dev
+          "$CC" --version
 
       - name: Prepare dependencies and configure
         if: ${{ !cancelled() }}
