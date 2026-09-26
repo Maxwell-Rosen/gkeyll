@@ -1,0 +1,1 @@
+In '/home/maxwell-rosen/gkeyll-fork/ci/make-check.sh', I want to have this output to the terminal as it goes in real time. Right now, it's saving to a file, so it cuts off the output
