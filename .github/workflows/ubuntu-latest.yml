@@ -167,11 +167,17 @@ jobs:
         if: always()
         run: |
           if [ -f "$CI_LOG_DIR/summary.txt" ]; then
-            {
-              echo '```text'
+            # Include the Markdown fences (12 bytes) in the 1 MiB limit.
+            if (( $(wc -c < "$CI_LOG_DIR/summary.txt") + 12 <= 1024 * 1024 )); then
+              {
+                echo '```text'
+                cat "$CI_LOG_DIR/summary.txt"
+                echo '```'
+              } > "$GITHUB_STEP_SUMMARY"
+            else
               cat "$CI_LOG_DIR/summary.txt"
-              echo '```'
-            } >> "$GITHUB_STEP_SUMMARY"
+              echo 'The CI summary exceeds the job summary size limit. See the full report in the **Publish summary** step log or `summary.txt` in the **ubuntu-ci-logs** artifact.' > "$GITHUB_STEP_SUMMARY"
+            fi
           fi
 
       - name: Upload CI logs

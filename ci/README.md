@@ -46,6 +46,11 @@ stages to run; the final exit status remains nonzero if any stage failed.
 Compiler warnings alone do not fail CI: each stage has a `.warnings.txt` report,
 and `summary.txt` includes warning counts and diagnostics with log locations.
 Actions also displays a warning annotation and publishes the summary.
+Identical warning lines are listed once with an occurrence count and the first
+log location; full stage logs retain every occurrence. If the summary exceeds
+Actions' 1 MiB limit (including Markdown formatting), the Publish summary step
+prints it in full to the terminal and posts a pointer in the job summary.
+The complete `summary.txt` remains in the `ubuntu-ci-logs` artifact.
 
 Actions uses the same stages and helpers:
 

@@ -53,6 +53,52 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("Compiler warnings: 1", summary)
         self.assertIn("compile.log:", summary)
 
+    def test_repeated_warnings_keep_counts_and_first_location(self):
+        result = self.run_shell(
+            f'source "{CI}/common.sh"; '
+            "ci_log compile bash -c 'printf \"file.c:2: warning: example\\n%.0s\" {1..100}'")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        summary = (self.root / "logs/summary.txt").read_text()
+        self.assertIn("Compiler warnings: 100", summary)
+        self.assertEqual(summary.count("file.c:2: warning: example"), 1)
+        self.assertIn("repeated 100 times; first occurrence", summary)
+        self.assertEqual((self.root / "logs/compile.log").read_text().count(
+            "file.c:2: warning: example"), 100)
+
+    def test_publish_summary_size_limit(self):
+        # Execute the workflow's actual shell block, including its Markdown fences.
+        workflow = (CI.parent / ".github/workflows/ubuntu-latest.yml").read_text()
+        block = workflow.split("      - name: Publish summary\n", 1)[1]
+        block = block.split("        run: |\n", 1)[1].split("\n      - name:", 1)[0]
+        command = "\n".join(line[10:] for line in block.splitlines())
+        logs = self.root / "logs"
+        logs.mkdir()
+        output = self.root / "step-summary.md"
+        self.env["GITHUB_STEP_SUMMARY"] = str(output)
+        limit = 1024 * 1024
+        for content in (None, "", "PASS compile\n", "x" * (limit - 12),
+                        "x" * (limit - 11), "é" * (limit // 2),
+                        "warning: example\n" * 150000):
+            with self.subTest(size=None if content is None else len(content.encode())):
+                if output.exists():
+                    output.unlink()
+                if content is not None:
+                    (logs / "summary.txt").write_text(content)
+                result = self.run_shell(command)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                if content is None:
+                    self.assertFalse(output.exists())
+                    continue
+                published = output.read_text()
+                self.assertLessEqual(output.stat().st_size, limit)
+                if len(content.encode()) + 12 <= limit:
+                    self.assertEqual(published, f"```text\n{content}```\n")
+                else:
+                    self.assertEqual(result.stdout, content)
+                    self.assertIn("Publish summary", published)
+                    self.assertIn("ubuntu-ci-logs", published)
+                self.assertEqual((logs / "summary.txt").read_text(), content)
+
     def test_error_with_warning_keeps_exit_status(self):
         result = self.run_shell(
             f'source "{CI}/common.sh"; '
