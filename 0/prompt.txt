@@ -1,0 +1,109 @@
+It looks like these regression tests crashed and failed. Please fix them. If you are unable to fix them so that CI will pass. Also, it seems like CI aborted after running only the regression tests from main. Why didn't it say that these other tests passed? It seems to indicate 0 passing tests.
+
+... saving accepted results to /home/runner/work/_temp/gkeyll-ci/baseline-install/gkeyll-results/pkpm/creg-accepted/cpu_serial/rt_pkpm_es_pot_well_1x_p2 ...
+... saving accepted results to /home/runner/work/_temp/gkeyll-ci/baseline-install/gkeyll-results/pkpm/creg-accepted/cpu_serial/rt_pkpm_travel_pulse_p1 ...
+
+All regression tests completed in 4832.66 secs
+  Layer moments       mode=cpu_serial   total=205  passed=0  failed=16
+  Layer vlasov        mode=cpu_serial   total=197  passed=0  failed=1
+  Layer gyrokinetic   mode=cpu_serial   total=108  passed=0  failed=9
+  Layer pkpm          mode=cpu_serial   total=38  passed=0  failed=0
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_brill_lindquist.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_kerr.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_bhl_spinning_tetrad.lua (lua): timeout
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_brill_lindquist.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_schwarzschild.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_5m_hartmann.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_bhl_static_tetrad.lua (lua): timeout
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_linearwave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_kerr.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_blackhole_spinning.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_gowdywave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_schwarzschild.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_multifluid_brio_wu_tetrad.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_linearwave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_iso_euler_hartmann.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_gowdywave.lua (lua): crash
+REGRESSION FAIL vlasov/vlasov/luareg/rt_can_pb_distorted_mesh_ic_2x2v_p2.lua (lua): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_sheath_3x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_nonuniform_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lbo_relax_bimaxwellian_nonuniformv_3x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_asdex_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cyl_3x2v_p1 (c): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_sol_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cart_3x2v_p1 (c): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cyl_3x2v_p1_nonuniformr (c): crash
+Regression create: 522 completed; FAIL
+Compiler warnings: 108 (informational; do not fail CI)
+/home/runner/work/_temp/gkeyll-ci-logs/runregression.log:648: zero/array_ops.c:723:7: warning: use of NaN is undefined behavior due to the currently enabled floating-point options [-Wnan-infinity-disabled]
+
+---
+
+It looks like these regression tests crashed and failed. Please fix them. If you are unable to fix them so that CI will pass. Also, it seems like CI aborted after running only the regression tests from main. Why didn't it say that these other tests passed? It seems to indicate 0 passing tests.
+
+... saving accepted results to /home/runner/work/_temp/gkeyll-ci/baseline-install/gkeyll-results/pkpm/creg-accepted/cpu_serial/rt_pkpm_es_pot_well_1x_p2 ...
+... saving accepted results to /home/runner/work/_temp/gkeyll-ci/baseline-install/gkeyll-results/pkpm/creg-accepted/cpu_serial/rt_pkpm_travel_pulse_p1 ...
+
+All regression tests completed in 4832.66 secs
+  Layer moments       mode=cpu_serial   total=205  passed=0  failed=16
+  Layer vlasov        mode=cpu_serial   total=197  passed=0  failed=1
+  Layer gyrokinetic   mode=cpu_serial   total=108  passed=0  failed=9
+  Layer pkpm          mode=cpu_serial   total=38  passed=0  failed=0
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_brill_lindquist.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_kerr.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_bhl_spinning_tetrad.lua (lua): timeout
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_brill_lindquist.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_schwarzschild.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_5m_hartmann.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_bhl_static_tetrad.lua (lua): timeout
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_linearwave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_kerr.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_blackhole_spinning.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_conformal_gowdywave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_schwarzschild.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_gr_multifluid_brio_wu_tetrad.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_linearwave.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_iso_euler_hartmann.lua (lua): crash
+REGRESSION FAIL moments/moments/luareg/rt_vacuum_einstein_gowdywave.lua (lua): crash
+REGRESSION FAIL vlasov/vlasov/luareg/rt_can_pb_distorted_mesh_ic_2x2v_p2.lua (lua): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_sheath_3x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_nonuniform_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lbo_relax_bimaxwellian_nonuniformv_3x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_asdex_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cyl_3x2v_p1 (c): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_multib_step_sol_2x2v_p1 (c): timeout
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cart_3x2v_p1 (c): crash
+REGRESSION FAIL gyrokinetic/gyrokinetic/creg/rt_gk_lapd_cyl_3x2v_p1_nonuniformr (c): crash
+Regression create: 522 completed; FAIL
+Compiler warnings: 108 (informational; do not fail CI)
+/home/runner/work/_temp/gkeyll-ci-logs/runregression.log:648: zero/array_ops.c:723:7: warning: use of NaN is undefined behavior due to the currently enabled floating-point options [-Wnan-infinity-disabled]
+
+---
+
+You may want to pull the regression test fixes from origin/maxs-failing-regtests
+
+---
+
+You may want to pull the regression test fixes from origin/maxs-failing-regtests
+
+---
+
+<send_user_message_question_reply>
+[{"answer":"Keep baseline failures fatal","question":"The solver fixes are being verified, but CI still builds unchanged origin/main for its baseline, so those baseline crashes will persist until the fixes land there. Should I make CI tolerate failures reproduced on main (reporting them separately), or keep the stage red while still running and reporting candidate tests?","questionItemId":"[\"request_user_input_async\",\"REDACTED\",0]"}]
+</send_user_message_question_reply>
+
+---
+
+<send_user_message_question_reply>
+[{"answer":"Keep baseline failures fatal","question":"The solver fixes are being verified, but CI still builds unchanged origin/main for its baseline, so those baseline crashes will persist until the fixes land there. Should I make CI tolerate failures reproduced on main (reporting them separately), or keep the stage red while still running and reporting candidate tests?","questionItemId":"[\"request_user_input_async\",\"REDACTED\",0]"}]
+</send_user_message_question_reply>
+
+---
+
+Put the regression tests you can't fix into the ignore list and remove any changes you made trying to fix them
+
+---
+
+Put the regression tests you can't fix into the ignore list and remove any changes you made trying to fix them
