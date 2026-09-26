@@ -1,0 +1,13 @@
+The last CI run failed on ubuntu-latest with error. 
+Invalid workflow file: .github/workflows/ubuntu-latest.yml#L1
+(Line: 23, Col: 16): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp, (Line: 24, Col: 19): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp
+
+It also ran the selfhost versions, so I gave them a .bak. Is that enough so that they don't run
+
+---
+
+The last CI run failed on ubuntu-latest with error. 
+Invalid workflow file: .github/workflows/ubuntu-latest.yml#L1
+(Line: 23, Col: 16): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp, (Line: 24, Col: 19): Unrecognized named-value: 'runner'. Located at position 1 within expression: runner.temp
+
+It also ran the selfhost versions, so I gave them a .bak. Is that enough so that they don't run
