@@ -1,0 +1,13 @@
+Does CI fail if there are warnings? It should not fail, but raise them to the user in a clear manner
+
+---
+
+Does CI fail if there are warnings? It should not fail, but raise them to the user in a clear manner
+
+---
+
+Does CI fail if there are warnings during compiling? It should not fail, but raise them to the user in a clear manner. If one stage fails, ensure that CI continues to the end of the workflow
+
+---
+
+Does CI fail if there are warnings during compiling? It should not fail, but raise them to the user in a clear manner. If one stage fails, ensure that CI continues to the end of the workflow
