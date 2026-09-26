@@ -55,3 +55,16 @@ browser. Add `--fetch` to download all artifacts into a new
 `gkeyll-ci-build-NUMBER` directory, or use `--only PATH[,PATH...]` and
 `--output-dir DIR` to select artifacts and a new destination. Downloaded
 artifacts retain their Jenkins-relative directory hierarchy.
+
+## Warnings and failed stages
+
+Compiler warnings are informational: their count appears in the build description,
+and `ci-warning-summary.txt` contains the diagnostics and archived log locations.
+A warning alone does not change the build result. Compiler and test commands still
+fail on nonzero exit status.
+
+A failed stage is marked failed, but later stages are attempted through the end
+of the workflow. The final Jenkins result and GitHub status remain failed if any
+stage failed; `ci-failure-summary.txt` lists the failed stages. Cancellation and
+timeouts still interrupt the workflow. A stage whose prerequisites failed may
+also fail, and commands within an individual stage still stop on errors.

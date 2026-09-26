@@ -35,101 +35,106 @@ jobs:
           sudo apt-get install -y build-essential gfortran cmake curl git rsync valgrind python-is-python3 python3-numpy libsqlite3-dev libopenblas-dev
 
       - name: Prepare dependencies and configure
+        if: ${{ !cancelled() }}
         run: bash ci/run.sh --machine linux --build_deps --stage prepare
 
       - name: Build and install all modules
-        id: install
+        if: ${{ !cancelled() }}
         run: bash ci/run.sh --stage build
 
       - name: Build core-unit
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh core unit
 
       - name: Test core-unit-run
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-check.sh core
 
       - name: Build core-regression
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh core regression
 
       - name: Test core-valcheck
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-valcheck.sh core "$CI_JOBS"
 
       - name: Build moments-unit
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh moments unit
 
       - name: Test moments-unit-run
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-check.sh moments
 
       - name: Build moments-regression
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh moments regression
 
       - name: Test moments-valcheck
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-valcheck.sh moments "$CI_JOBS"
 
       - name: Build vlasov-unit
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh vlasov unit
 
       - name: Test vlasov-unit-run
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-check.sh vlasov
 
       - name: Build vlasov-regression
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh vlasov regression
 
       - name: Test vlasov-valcheck
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-valcheck.sh vlasov "$CI_JOBS"
 
       - name: Build gyrokinetic-unit
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh gyrokinetic unit
 
       - name: Test gyrokinetic-unit-run
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-check.sh gyrokinetic
 
       - name: Build gyrokinetic-regression
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh gyrokinetic regression
 
       - name: Test gyrokinetic-valcheck
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-valcheck.sh gyrokinetic "$CI_JOBS"
 
       - name: Build pkpm-unit
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh pkpm unit
 
       - name: Test pkpm-unit-run
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-check.sh pkpm
 
       - name: Build pkpm-regression
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-module.sh pkpm regression
 
       - name: Test pkpm-valcheck
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: ci/make-valcheck.sh pkpm "$CI_JOBS"
 
       - name: Compare regressions against main
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        if: ${{ !cancelled() }}
         run: bash ci/runregression-against-main.sh
 
       - name: Publish summary
         if: always()
         run: |
           if [ -f "$CI_LOG_DIR/summary.txt" ]; then
-            cat "$CI_LOG_DIR/summary.txt" >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo '```text'
+              cat "$CI_LOG_DIR/summary.txt"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload CI logs

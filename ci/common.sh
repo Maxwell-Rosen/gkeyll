@@ -34,8 +34,13 @@ ci_log() {
         printf '\nFull output:\n'
         cat "$raw"
     } > "$log"
+    local warning_options=()
+    if [[ ${GITHUB_ACTIONS:-} == true ]]; then warning_options+=(--github); fi
+    python3 "$CI_SCRIPTS/report-warnings.py" "${warning_options[@]}" \
+        --output "$CI_LOG_DIR/$name.warnings.txt" "$log"
     rm -f "$raw"
     sed '/^Full output:/,$d' "$log" >> "$CI_LOG_DIR/summary.txt"
+    cat "$CI_LOG_DIR/$name.warnings.txt" >> "$CI_LOG_DIR/summary.txt"
     echo "Log: $log"
     return "$rc"
 }

@@ -78,7 +78,7 @@ def timeCommand(String metricFile, String command) {
     sh """#!/bin/bash
         set -euo pipefail
         started=\$(date +%s)
-        ${command}
+        ${command} 2>&1 | tee "${env.WORKSPACE}/${metricFile.tokenize('/').last().replace('-seconds.txt', '.log')}"
         elapsed=\$(( \$(date +%s) - started ))
         printf '%s\\n' "\$elapsed" > '${metricFile}'
         echo "${metricFile}: \$elapsed seconds"
@@ -91,8 +91,8 @@ def buildTree(String label, String prefix, String mkdeps, String configure, Stri
     withEnv(["PREFIX=${prefix}", "MPI_HOME=${mpiHome}"]) {
         sh """#!/bin/bash
             set -euo pipefail
-            ./machines/${mkdeps}
-            ./machines/${configure}
+            ./machines/${mkdeps} 2>&1 | tee "${env.WORKSPACE}/${label}-dependencies.log"
+            ./machines/${configure} 2>&1 | tee "${env.WORKSPACE}/${label}-configure.log"
         """
         timeCommand("${metricDirectory}${label}-unit-build-seconds.txt", "make -j${jobs} unit")
         timeCommand("${metricDirectory}${label}-unit-test-seconds.txt", 'make unit-run')
@@ -149,7 +149,7 @@ def runParallelRegressions(String mpiExec) {
 
         "${baselineGkeyll}" runregression configure --source-dir "${env.WORKSPACE}/_baseline" --prefix "${env.WORKSPACE}/_baseline/gkylsoft" --results-subdir parallel-c-4 --mpiexec "${baselineMpiExec}"
         started=\$(date +%s)
-        "${baselineGkeyll}" runregression run --c-only --parallel compile
+        "${baselineGkeyll}" runregression run --c-only --parallel compile 2>&1 | tee "${env.WORKSPACE}/baseline-parallel-compile.log"
         elapsed=\$(( \$(date +%s) - started ))
         printf '%s\\n' "\$elapsed" > baseline-parallel-c-compile-seconds.txt
 
@@ -160,7 +160,7 @@ def runParallelRegressions(String mpiExec) {
 
         "${gkeyll}" runregression configure --source-dir "${env.WORKSPACE}" --prefix "${env.WORKSPACE}/gkylsoft" --results-subdir parallel-c-4 --mpiexec "${candidateMpiExec}"
         started=\$(date +%s)
-        "${gkeyll}" runregression run --c-only --parallel compile
+        "${gkeyll}" runregression run --c-only --parallel compile 2>&1 | tee "${env.WORKSPACE}/candidate-parallel-compile.log"
         elapsed=\$(( \$(date +%s) - started ))
         printf '%s\\n' "\$elapsed" > candidate-parallel-c-compile-seconds.txt
 
@@ -248,12 +248,42 @@ def mpiExec = (env.PERSONAL_MPIEXEC ?: '').trim()
 if (!(jobs ==~ /[1-9][0-9]*/) || !(regressionJobs ==~ /[1-9][0-9]*/)) error('PERSONAL_BUILD_JOBS and PERSONAL_REGRESSION_JOBS must be positive integers.')
 
 def ciStage(String stageName, Closure body) {
-    env.CI_FAILURE_STAGE = stageName
-    stage(stageName) { body.call() }
+    stage(stageName) {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', catchInterruptions: false) {
+            try {
+                body.call()
+            } catch (err) {
+                env.CI_FAILURE_STAGE = stageName
+                env.CI_FAILED_STAGES = (env.CI_FAILED_STAGES ?: '') + "${stageName}: ${err}\n"
+                throw err
+            }
+        }
+    }
+}
+
+def writeCiWarningSummary() {
+    sh '''#!/bin/bash
+        set -euo pipefail
+        shopt -s nullglob
+        : > ci-warning-details.txt
+        for log in ./*.log; do
+            # Strip compiler color codes before matching GCC/Clang/Intel/NVCC.
+            sed -E 's/\\x1B\\[[0-9;]*m//g' "$log" | \\
+                grep -nEi 'warning([[:space:]]+#[[:alnum:]_-]+)?[[:space:]]*:' | \\
+                sed "s|^|$log:|" >> ci-warning-details.txt || true
+        done
+        {
+            echo "Compiler warnings: $(wc -l < ci-warning-details.txt) (informational; do not fail CI)"
+            cat ci-warning-details.txt
+        } > ci-warning-summary.txt
+        cat ci-warning-summary.txt
+    '''
+    def headline = readFile('ci-warning-summary.txt').readLines().first()
+    currentBuild.description = (currentBuild.description ?: '') + " | ${headline}"
 }
 
 def writeCiFailureSummary(String result, String stageName, String message) {
-    def compactMessage = (message ?: 'unknown failure').replaceAll('[\\r\\n]+', ' ').trim().take(500)
+    def compactMessage = ((env.CI_FAILED_STAGES ?: '') + (message ?: 'unknown failure')).replaceAll('[\\r\\n]+', ' ').trim()
     writeFile file: 'ci-failure-summary.txt', text: "result=${result}\nstage=${stageName ?: 'unknown'}\nmessage=${compactMessage}\n"
 }
 
@@ -283,13 +313,16 @@ def runCi = {
         ciStage('Build candidate') { buildTree('candidate', "${env.WORKSPACE}/gkylsoft", mkdeps, configure, jobs) }
         ciStage('Build baseline') { createBaseline(requestedBaseline, mkdeps, configure, jobs, regressionJobs) }
         ciStage('C regressions') { runCandidateRegressions(regressionJobs) }
-        ciStage('Parallel C regressions') { runParallelRegressions(mpiExec); status = 'success'; description = 'Personal CI passed.' }
+        ciStage('Parallel C regressions') { runParallelRegressions(mpiExec) }
+        status = currentBuild.currentResult == 'SUCCESS' ? 'success' : 'failure'
+        description = status == 'success' ? 'Personal CI passed.' : 'Personal CI failed; see ci-failure-summary.txt.'
     } catch (err) {
         failureMessage = err.toString()
         if (currentBuild.currentResult == 'ABORTED' || err.toString().contains('FlowInterruptedException')) { status = 'error'; description = 'Personal CI was aborted.' }
         throw err
     } finally {
         try {
+            writeCiWarningSummary()
             writeCiTimingSummary()
         } catch (err) {
             status = 'error'
@@ -299,7 +332,7 @@ def runCi = {
             throw err
         } finally {
             if (status != 'success') writeCiFailureSummary(status, env.CI_FAILURE_STAGE, failureMessage ?: description)
-            archiveArtifacts allowEmptyArchive: true, artifacts: 'ci-selection.txt,ci-trusted-ci-commit.txt,ci-candidate-commit.txt,ci-baseline-commit.txt,*-seconds.txt,ci-timing-summary.txt,ci-regression-summary.txt,ci-parallel-regression-summary.txt,ci-failure-summary.txt,build/**/*.log,gkylsoft/gkeyll-results/**/regressiondb,gkylsoft/gkeyll-results/**/_rr_failures.txt'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'ci-warning-summary.txt,*.log,ci-selection.txt,ci-trusted-ci-commit.txt,ci-candidate-commit.txt,ci-baseline-commit.txt,*-seconds.txt,ci-timing-summary.txt,ci-regression-summary.txt,ci-parallel-regression-summary.txt,ci-failure-summary.txt,build/**/*.log,gkylsoft/gkeyll-results/**/regressiondb,gkylsoft/gkeyll-results/**/_rr_failures.txt'
         }
         if (commit) publishStatus(statusCredentialsId, env.CI_STATUS_CONTEXT ?: 'continuous-integration/jenkins/personal', commit, status, description)
         deleteDir()

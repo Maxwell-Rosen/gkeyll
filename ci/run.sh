@@ -64,13 +64,13 @@ done
 }
 echo "Build: $CI_PATH"
 echo "Logs:  $CI_LOG_DIR"
+rc=0
 if [[ $stage == all || $stage == prepare ]]; then
-    ci_log prepare bash "$CI_SCRIPTS/prepare.sh" "$build_deps" "$revision"
+    ci_log prepare bash "$CI_SCRIPTS/prepare.sh" "$build_deps" "$revision" || rc=1
 fi
 if [[ $stage == all || $stage == build ]]; then
-    ci_log install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" install
+    ci_log install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" install || rc=1
 fi
-rc=0
 if [[ $stage == all || $stage == modules ]]; then
     for module in core moments vlasov gyrokinetic pkpm; do
         bash "$CI_SCRIPTS/make-module.sh" "$module" unit || rc=1

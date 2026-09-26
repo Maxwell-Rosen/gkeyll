@@ -41,7 +41,11 @@ The baseline must support the current runregression interface and database schem
 Use `--skip_valcheck` and/or `--skip_runregression` for a shorter local run.
 `--jobs N` controls compilation and regression concurrency (default half the
 available CPUs). Unit and regression compilation failures do not prevent attempts
-to test other modules; setup/install failures stop the pipeline immediately.
+to test other modules. Preparation and installation failures also allow later
+stages to run; the final exit status remains nonzero if any stage failed.
+Compiler warnings alone do not fail CI: each stage has a `.warnings.txt` report,
+and `summary.txt` includes warning counts and diagnostics with log locations.
+Actions also displays a warning annotation and publishes the summary.
 
 Actions uses the same stages and helpers:
 
@@ -69,3 +73,13 @@ This first version supports Linux CPU/serial execution. Perlmutter allocations,
 GPU/MPI testing, HTML reports, and optional GitHub commit-status posting are not
 implemented. Unsupported flags fail explicitly. No GitHub token file is needed;
 private fetches use your existing Git credentials.
+
+CI helper checks (no solver build required), from the repository root:
+
+```bash
+python3 ci/test-workflow.py
+groovy ci/test-jenkins.groovy  # Requires a Groovy installation compatible with your JDK.
+```
+
+The Groovy checks parse the Jenkinsfiles and exercise stage/error and warning
+helpers using stubbed Pipeline steps; deployment still requires a real Jenkins run.

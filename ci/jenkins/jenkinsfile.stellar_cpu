@@ -381,7 +381,7 @@ def configureAndCompileCRegressions(String label, String driver, String sourceDi
                 --source-dir "$CI_REGRESSION_SOURCE_DIR" \
                 --prefix "$CI_REGRESSION_PREFIX" ${CI_REGRESSION_CONFIGURE_OPTIONS:-}
             started="$(date +%s)"
-            "$CI_REGRESSION_DRIVER" runregression run -c ${CI_REGRESSION_RUN_OPTIONS:-} compile
+            "$CI_REGRESSION_DRIVER" runregression run -c ${CI_REGRESSION_RUN_OPTIONS:-} compile 2>&1 | tee "$WORKSPACE/$CI_REGRESSION_LABEL-compile.log"
             elapsed="$(( $(date +%s) - started ))"
             printf '%s\n' "$elapsed" > "$CI_REGRESSION_LABEL-c-compile-seconds.txt"
             echo "$CI_REGRESSION_LABEL C-regression compile time: $elapsed seconds"
@@ -549,12 +549,42 @@ def terminalDescription = 'Stellar CPU CPU CI failed.'
 def failureMessage = ''
 
 def ciStage(String stageName, Closure body) {
-    env.CI_FAILURE_STAGE = stageName
-    stage(stageName) { body.call() }
+    stage(stageName) {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE', catchInterruptions: false) {
+            try {
+                body.call()
+            } catch (err) {
+                env.CI_FAILURE_STAGE = stageName
+                env.CI_FAILED_STAGES = (env.CI_FAILED_STAGES ?: '') + "${stageName}: ${err}\n"
+                throw err
+            }
+        }
+    }
+}
+
+def writeCiWarningSummary() {
+    sh '''#!/bin/bash
+        set -euo pipefail
+        shopt -s nullglob
+        : > ci-warning-details.txt
+        for log in ./*.log; do
+            # Strip compiler color codes before matching GCC/Clang/Intel/NVCC.
+            sed -E 's/\\x1B\\[[0-9;]*m//g' "$log" | \\
+                grep -nEi 'warning([[:space:]]+#[[:alnum:]_-]+)?[[:space:]]*:' | \\
+                sed "s|^|$log:|" >> ci-warning-details.txt || true
+        done
+        {
+            echo "Compiler warnings: $(wc -l < ci-warning-details.txt) (informational; do not fail CI)"
+            cat ci-warning-details.txt
+        } > ci-warning-summary.txt
+        cat ci-warning-summary.txt
+    '''
+    def headline = readFile('ci-warning-summary.txt').readLines().first()
+    currentBuild.description = (currentBuild.description ?: '') + " | ${headline}"
 }
 
 def writeCiFailureSummary(String result, String stageName, String message) {
-    def compactMessage = (message ?: 'unknown failure').replaceAll('[\\r\\n]+', ' ').trim().take(500)
+    def compactMessage = ((env.CI_FAILED_STAGES ?: '') + (message ?: 'unknown failure')).replaceAll('[\\r\\n]+', ' ').trim()
     writeFile file: 'ci-failure-summary.txt', text: "result=${result}\nstage=${stageName ?: 'unknown'}\nmessage=${compactMessage}\n"
 }
 
@@ -601,7 +631,7 @@ node(nodeLabel) {
                 withEnv(["PREFIX=${env.WORKSPACE}/gkylsoft"]) {
                     sh '''#!/bin/bash -l
                         set -euo pipefail
-                        ./machines/mkdeps.stellar-intel.sh
+                        ./machines/mkdeps.stellar-intel.sh 2>&1 | tee "$WORKSPACE/candidate-mkdeps.log"
                     '''
                 }
             }
@@ -609,7 +639,7 @@ node(nodeLabel) {
                 withEnv(["PREFIX=${env.WORKSPACE}/gkylsoft"]) {
                     sh '''#!/bin/bash -l
                         set -euo pipefail
-                        ./machines/configure.stellar-intel.sh
+                        ./machines/configure.stellar-intel.sh 2>&1 | tee "$WORKSPACE/candidate-configure.log"
                     '''
                 }
             }
@@ -622,7 +652,7 @@ node(nodeLabel) {
                     . machines/module_load.stellar-intel.sh
                     module list
                     started=\$(date +%s)
-                    make -j${jobs} unit
+                    make -j${jobs} unit 2>&1 | tee "${env.WORKSPACE}/candidate-unit-build.log"
                     elapsed=\$(( \$(date +%s) - started ))
                     printf '%s\\n' "\$elapsed" > candidate-unit-build-seconds.txt
                     echo "Candidate unit-test build time: \$elapsed seconds"
@@ -637,7 +667,7 @@ node(nodeLabel) {
                     set -euo pipefail
                     . machines/module_load.stellar-intel.sh
                     started=\$(date +%s)
-                    make -j${jobs} install
+                    make -j${jobs} install 2>&1 | tee "${env.WORKSPACE}/candidate-install.log"
                     elapsed=\$(( \$(date +%s) - started ))
                     printf '%s\\n' "\$elapsed" > candidate-install-seconds.txt
                     echo "Candidate install time: \$elapsed seconds"
@@ -665,8 +695,8 @@ node(nodeLabel) {
                         sh '''#!/bin/bash -l
                             set -euo pipefail
                             . ../machines/module_load.stellar-intel.sh
-                            ./machines/mkdeps.stellar-intel.sh
-                            ./machines/configure.stellar-intel.sh
+                            ./machines/mkdeps.stellar-intel.sh 2>&1 | tee "$WORKSPACE/baseline-mkdeps.log"
+                            ./machines/configure.stellar-intel.sh 2>&1 | tee "$WORKSPACE/baseline-configure.log"
                         '''
                     }
                 }
@@ -678,7 +708,7 @@ node(nodeLabel) {
                         set -euo pipefail
                         . ../machines/module_load.stellar-intel.sh
                         started=\$(date +%s)
-                        make -j${jobs} install
+                        make -j${jobs} install 2>&1 | tee "${env.WORKSPACE}/baseline-install.log"
                         elapsed=\$(( \$(date +%s) - started ))
                         printf '%s\\n' "\$elapsed" > ../baseline-install-seconds.txt
                         echo "Baseline install time: \$elapsed seconds"
@@ -718,7 +748,7 @@ node(nodeLabel) {
             ciStage('Run parallel C regressions (SLURM)') {
                 submitParallelRegressionTests()
             }
-            terminalStatus = 'success'
+            terminalStatus = currentBuild.currentResult == 'SUCCESS' ? 'success' : 'failure'
             terminalDescription = 'Stellar CPU CPU unit and C regression tests passed.'
         } catch (err) {
             failureMessage = err.toString()
@@ -738,6 +768,7 @@ node(nodeLabel) {
                 throw err
             } finally {
                 try {
+                    writeCiWarningSummary()
                     writeCiTimingSummary()
                     terminalDescription = timingStatusDescription(terminalStatus)
                 } catch (err) {
@@ -750,7 +781,7 @@ node(nodeLabel) {
                 try {
                     if (terminalStatus != 'success') writeCiFailureSummary(terminalStatus, env.CI_FAILURE_STAGE, failureMessage ?: terminalDescription)
                     archiveArtifacts allowEmptyArchive: true,
-                        artifacts: 'ci-selection.txt,ci-candidate-commit.txt,ci-baseline-commit.txt,*-c-compile-seconds.txt,ci-timing-summary.txt,ci-regression-summary.txt,ci-failure-summary.txt,slurm-*.out,slurm-*-job-id.txt,slurm-*-job-status.txt,build/**/*.log,gkylsoft/gkeyll-results/**/regressiondb,gkylsoft/gkeyll-results/**/_rr_failures.txt,_baseline/gkylsoft/gkeyll-results/**/regressiondb,_baseline/gkylsoft/gkeyll-results/**/_rr_failures.txt'
+                        artifacts: 'ci-warning-summary.txt,*.log,ci-selection.txt,ci-candidate-commit.txt,ci-baseline-commit.txt,*-c-compile-seconds.txt,ci-timing-summary.txt,ci-regression-summary.txt,ci-failure-summary.txt,slurm-*.out,slurm-*-job-id.txt,slurm-*-job-status.txt,build/**/*.log,gkylsoft/gkeyll-results/**/regressiondb,gkylsoft/gkeyll-results/**/_rr_failures.txt,_baseline/gkylsoft/gkeyll-results/**/regressiondb,_baseline/gkylsoft/gkeyll-results/**/_rr_failures.txt'
                 } catch (err) {
                     terminalStatus = 'error'
                     terminalDescription = 'Stellar CPU CPU CI artifact archival failed.'
