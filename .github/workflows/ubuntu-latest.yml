@@ -44,11 +44,43 @@ jobs:
           source ci/common.sh
           ci_log core-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" core-install
 
+      - name: Build core-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh core unit
+
+      - name: Check core-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-check.sh core
+
+      - name: Test core-valcheck
+        if: ${{ !cancelled() }}
+        run: ci/make-valcheck.sh core "$CI_JOBS"
+
+      - name: Build core-regression
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh core regression
+
       - name: Build and install moments
         if: ${{ !cancelled() }}
         run: |
           source ci/common.sh
           ci_log moments-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" moments-install
+
+      - name: Build moments-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh moments unit
+
+      - name: Check moments-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-check.sh moments
+
+      - name: Test moments-valcheck
+        if: ${{ !cancelled() }}
+        run: ci/make-valcheck.sh moments "$CI_JOBS"
+
+      - name: Build moments-regression
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh moments regression
 
       - name: Build and install vlasov
         if: ${{ !cancelled() }}
@@ -56,11 +88,43 @@ jobs:
           source ci/common.sh
           ci_log vlasov-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" vlasov-install
 
+      - name: Build vlasov-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh vlasov unit
+
+      - name: Check vlasov-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-check.sh vlasov
+
+      - name: Test vlasov-valcheck
+        if: ${{ !cancelled() }}
+        run: ci/make-valcheck.sh vlasov "$CI_JOBS"
+
+      - name: Build vlasov-regression
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh vlasov regression
+
       - name: Build and install gyrokinetic
         if: ${{ !cancelled() }}
         run: |
           source ci/common.sh
           ci_log gyrokinetic-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" gyrokinetic-install
+
+      - name: Build gyrokinetic-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh gyrokinetic unit
+
+      - name: Check gyrokinetic-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-check.sh gyrokinetic
+
+      - name: Test gyrokinetic-valcheck
+        if: ${{ !cancelled() }}
+        run: ci/make-valcheck.sh gyrokinetic "$CI_JOBS"
+
+      - name: Build gyrokinetic-regression
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh gyrokinetic regression
 
       - name: Build and install pkpm
         if: ${{ !cancelled() }}
@@ -68,93 +132,29 @@ jobs:
           source ci/common.sh
           ci_log pkpm-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" pkpm-install
 
+      - name: Build pkpm-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh pkpm unit
+
+      - name: Check pkpm-unit
+        if: ${{ !cancelled() }}
+        run: ci/make-check.sh pkpm
+
+      - name: Test pkpm-valcheck
+        if: ${{ !cancelled() }}
+        run: ci/make-valcheck.sh pkpm "$CI_JOBS"
+
+      - name: Build pkpm-regression
+        if: ${{ !cancelled() }}
+        run: ci/make-module.sh pkpm regression
+
       - name: Build and install gkeyll
         if: ${{ !cancelled() }}
         run: |
           source ci/common.sh
           ci_log gkeyll-install make -C "$CI_SOURCE_DIR" -j"$CI_JOBS" gkeyll-install
 
-      - name: Build core-unit
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh core unit
-
-      - name: Test core-unit-run
-        if: ${{ !cancelled() }}
-        run: ci/make-check.sh core
-
-      - name: Build core-regression
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh core regression
-
-      - name: Test core-valcheck
-        if: ${{ !cancelled() }}
-        run: ci/make-valcheck.sh core "$CI_JOBS"
-
-      - name: Build moments-unit
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh moments unit
-
-      - name: Test moments-unit-run
-        if: ${{ !cancelled() }}
-        run: ci/make-check.sh moments
-
-      - name: Build moments-regression
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh moments regression
-
-      - name: Test moments-valcheck
-        if: ${{ !cancelled() }}
-        run: ci/make-valcheck.sh moments "$CI_JOBS"
-
-      - name: Build vlasov-unit
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh vlasov unit
-
-      - name: Test vlasov-unit-run
-        if: ${{ !cancelled() }}
-        run: ci/make-check.sh vlasov
-
-      - name: Build vlasov-regression
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh vlasov regression
-
-      - name: Test vlasov-valcheck
-        if: ${{ !cancelled() }}
-        run: ci/make-valcheck.sh vlasov "$CI_JOBS"
-
-      - name: Build gyrokinetic-unit
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh gyrokinetic unit
-
-      - name: Test gyrokinetic-unit-run
-        if: ${{ !cancelled() }}
-        run: ci/make-check.sh gyrokinetic
-
-      - name: Build gyrokinetic-regression
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh gyrokinetic regression
-
-      - name: Test gyrokinetic-valcheck
-        if: ${{ !cancelled() }}
-        run: ci/make-valcheck.sh gyrokinetic "$CI_JOBS"
-
-      - name: Build pkpm-unit
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh pkpm unit
-
-      - name: Test pkpm-unit-run
-        if: ${{ !cancelled() }}
-        run: ci/make-check.sh pkpm
-
-      - name: Build pkpm-regression
-        if: ${{ !cancelled() }}
-        run: ci/make-module.sh pkpm regression
-
-      - name: Test pkpm-valcheck
-        if: ${{ !cancelled() }}
-        run: ci/make-valcheck.sh pkpm "$CI_JOBS"
-
-      - name: Compare regressions against main
+      - name: Compare regression tests against main
         if: ${{ !cancelled() }}
         run: bash ci/runregression-against-main.sh
 
