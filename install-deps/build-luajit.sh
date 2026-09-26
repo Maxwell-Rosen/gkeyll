@@ -23,7 +23,7 @@ then
     echo "Building LuaJIT .."
     cd luajit
 
-    make -j6 PREFIX=$PREFIX install 
+    make -j"${GKYL_CI_JOBS:-6}" PREFIX=$PREFIX install
 
     # soft-link 
     ln -sfn $PREFIX $GKYLSOFT/luajit

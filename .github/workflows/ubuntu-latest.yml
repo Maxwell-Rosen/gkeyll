@@ -1,4 +1,4 @@
-name: Mac Build
+name: Ubuntu CPU CI
 
 on:
   push:
@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,42 +17,125 @@ concurrency:
 
 jobs:
   build:
-    if: github.event.pull_request.draft == false
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    env:
+      CI_PATH: ${{ runner.temp }}/gkeyll-ci
+      CI_LOG_DIR: ${{ runner.temp }}/gkeyll-ci-logs
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: install-superlu
+      - name: Check CI orchestration
+        run: python3 -m unittest discover -s ci/tests -v
+
+      - name: Install system prerequisites
         run: |
-          cd install-deps; ./mkdeps.sh  --build-superlu=yes; cd ..    
-          chmod +x ci/make-module.sh
-          chmod +x ci/make-check.sh
+          sudo apt-get update
+          sudo apt-get install -y build-essential gfortran cmake curl git rsync valgrind python-is-python3 python3-numpy libsqlite3-dev libopenblas-dev
 
-      # Core module
+      - name: Prepare dependencies and configure
+        run: bash ci/run.sh --machine linux --build_deps --stage prepare
+
+      - name: Build and install all modules
+        id: install
+        run: bash ci/run.sh --stage build
+
       - name: Build core-unit
-        run: ci/make-module.sh core unit 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh core unit
+
+      - name: Test core-unit-run
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-check.sh core
+
       - name: Build core-regression
-        run: ci/make-module.sh core regression 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh core regression
 
-      # Moments module
+      - name: Test core-valcheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-valcheck.sh core
+
       - name: Build moments-unit
-        run: ci/make-module.sh moments unit 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh moments unit
+
+      - name: Test moments-unit-run
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-check.sh moments
+
       - name: Build moments-regression
-        run: ci/make-module.sh moments regression 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh moments regression
 
-      # Vlasov module
+      - name: Test moments-valcheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-valcheck.sh moments
+
       - name: Build vlasov-unit
-        run: ci/make-module.sh vlasov unit 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh vlasov unit
+
+      - name: Test vlasov-unit-run
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-check.sh vlasov
+
       - name: Build vlasov-regression
-        run: ci/make-module.sh vlasov regression 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh vlasov regression
 
-      # Gyrokinetic module
+      - name: Test vlasov-valcheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-valcheck.sh vlasov
+
       - name: Build gyrokinetic-unit
-        run: ci/make-module.sh gyrokinetic unit 3
-      - name: Build gyrokinetic-regression
-        run: ci/make-module.sh gyrokinetic regression 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh gyrokinetic unit
 
-      # PKPM module
+      - name: Test gyrokinetic-unit-run
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-check.sh gyrokinetic
+
+      - name: Build gyrokinetic-regression
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh gyrokinetic regression
+
+      - name: Test gyrokinetic-valcheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-valcheck.sh gyrokinetic
+
+      - name: Build pkpm-unit
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh pkpm unit
+
+      - name: Test pkpm-unit-run
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-check.sh pkpm
+
       - name: Build pkpm-regression
-        run: ci/make-module.sh pkpm regression 3
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-module.sh pkpm regression
+
+      - name: Test pkpm-valcheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: ci/make-valcheck.sh pkpm
+
+      - name: Compare regressions against main
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bash ci/runregression-against-main.sh
+
+      - name: Publish summary
+        if: always()
+        run: |
+          if [ -f "$CI_LOG_DIR/summary.txt" ]; then
+            cat "$CI_LOG_DIR/summary.txt" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload CI logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-ci-logs
+          path: ${{ env.CI_LOG_DIR }}
+          if-no-files-found: ignore
