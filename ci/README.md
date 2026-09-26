@@ -51,6 +51,13 @@ Actions uses the same stages and helpers:
 
 The Ubuntu workflow sets `CI_JOBS` to `nproc`, using all available CPUs for
 dependency builds, compilation, unit tests, Valgrind, and regression concurrency.
+It sets `ARCH_FLAGS="-march=skylake -mno-avx -mno-avx2 -mno-avx512f"` for
+the CPU candidate and baseline builds. `ci_configure` writes these flags into
+`config.mak`, and Make uses them alongside its normal `CFLAGS`. OpenBLAS is
+built with `NO_AVX512=1` because it detects the host CPU independently. Existing
+dependencies must be rebuilt with this option before reusing them for Valgrind.
+For the same Gkeyll flags locally, export `ARCH_FLAGS` before running the driver.
+Valgrind checks require a CPU build.
 
 ```bash
 export CI_PATH=/tmp/gkeyll-ci CI_LOG_DIR=/tmp/gkeyll-ci-logs

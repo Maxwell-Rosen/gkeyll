@@ -24,8 +24,9 @@ then
     gunzip -f OpenBLAS-0.3.30.tar.gz
     tar xvf OpenBLAS-0.3.30.tar
     cd OpenBLAS-0.3.30
-    make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 -j "${GKYL_CI_JOBS:-32}"
-    make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 install PREFIX=$PREFIX -j "${GKYL_CI_JOBS:-32}"
+    # OpenBLAS detects the host CPU separately from Gkeyll; keep it Valgrind compatible.
+    make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 NO_AVX512=1 -j "${GKYL_CI_JOBS:-32}"
+    make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 NO_AVX512=1 install PREFIX=$PREFIX -j "${GKYL_CI_JOBS:-32}"
 
     # soft-link 
     ln -sfn $PREFIX $GKYLSOFT/OpenBLAS

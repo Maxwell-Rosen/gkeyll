@@ -47,7 +47,8 @@ ci_log() {
 
 ci_configure() {
     local source=$1 prefix=$2
-    (cd "$source" && ./configure "CC=${CC:-gcc}" --use-lua=yes --use-mpi=no \
+    (cd "$source" && ./configure "CC=${CC:-gcc}" "ARCH_FLAGS=${ARCH_FLAGS:--march=native}" \
+        --use-lua=yes --use-mpi=no \
         "--prefix=$prefix" "--lapack-inc=$CI_DEPS/OpenBLAS/include" \
         "--lapack-lib=$CI_DEPS/OpenBLAS/lib" "--superlu-inc=$CI_DEPS/superlu/include" \
         "--superlu-lib=$CI_DEPS/superlu/lib" "--lua-inc=$CI_DEPS/luajit/include/luajit-2.1" \
