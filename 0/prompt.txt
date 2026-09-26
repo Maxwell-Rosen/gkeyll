@@ -1,0 +1,15 @@
+Rather than
+      - name: Build and install all modules
+        if: ${{ !cancelled() }}
+        run: bash ci/run.sh --stage build
+
+Please build each module one at a time
+
+---
+
+Rather than
+      - name: Build and install all modules
+        if: ${{ !cancelled() }}
+        run: bash ci/run.sh --stage build
+
+Please build each module one at a time
