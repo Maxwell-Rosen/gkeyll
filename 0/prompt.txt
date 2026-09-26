@@ -1,0 +1,5 @@
+For the ubuntu-latest build, make sure to use a march flag that supports valgrind. For instance, on my laptop I use skylake. Maybe using x86-64-v4 is best.
+
+---
+
+For the ubuntu-latest build, make sure to use a march flag that supports valgrind. For instance, on my laptop I use skylake. Maybe using x86-64-v4 is best.
