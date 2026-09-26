@@ -20,8 +20,8 @@ echo "========================================"
 echo "Running ${MODULE}-check with ${JOBS} jobs"
 echo "========================================"
 
-# Run make and capture output silently
-if ! make -j"${JOBS}" "${MODULE}-check" > "$TEST_LOG" 2>&1; then
+# Stream make output to the terminal and save it for result analysis
+if ! make -j"${JOBS}" "${MODULE}-check" 2>&1 | tee "$TEST_LOG"; then
     echo ""
     echo "::error::Test execution failed for ${MODULE} module"
     # Show the last 50 lines if make itself failed

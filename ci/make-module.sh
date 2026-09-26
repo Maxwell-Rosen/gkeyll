@@ -32,10 +32,10 @@ echo "========================================"
 echo "Building ${MODULE}-${TARGET} with ${JOBS} jobs"
 echo "========================================"
 
-# Run make and capture output silently (only save to log)
+# Stream make output to the terminal and save it for warning/error analysis
 # Don't exit on error yet - we want to check the log first
 MODULE_UPPER=$(echo "$MODULE" | tr '[:lower:]' '[:upper:]')
-if ! make -j"${JOBS}" "${MODULE}-${TARGET}" > "$BUILD_LOG" 2>&1; then
+if ! make -j"${JOBS}" "${MODULE}-${TARGET}" 2>&1 | tee "$BUILD_LOG"; then
     # Build failed - show the errors
     echo ""
     echo "::error::Build failed for ${MODULE} ${TARGET}"

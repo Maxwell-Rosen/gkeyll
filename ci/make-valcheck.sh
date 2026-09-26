@@ -20,8 +20,8 @@ echo "========================================"
 echo "Running ${MODULE}-valcheck with ${JOBS} jobs"
 echo "========================================"
 
-# Run make valcheck and capture output
-if ! make -j"${JOBS}" "${MODULE}-valcheck" > "$VALCHECK_LOG" 2>&1; then
+# Stream make output to the terminal and save it for result analysis
+if ! make -j"${JOBS}" "${MODULE}-valcheck" 2>&1 | tee "$VALCHECK_LOG"; then
     echo ""
     echo "::error::Valgrind check execution failed for ${MODULE} module"
     # Show the last 50 lines if make itself failed
