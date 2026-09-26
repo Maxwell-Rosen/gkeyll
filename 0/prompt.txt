@@ -1,0 +1,39 @@
+CI gave this error during the log. Please fix this. The point of the summary is a consise document for all the warnings, errors, explanations. We can dump this directly into the terminal instead of writing a file if the file is too big. 
+
+Run if [ -f "$CI_LOG_DIR/summary.txt" ]; then
+  if [ -f "$CI_LOG_DIR/summary.txt" ]; then
+    {
+      echo '```text'
+      cat "$CI_LOG_DIR/summary.txt"
+      echo '```'
+    } >> "$GITHUB_STEP_SUMMARY"
+  fi
+  shell: /usr/bin/bash -e {0}
+  env:
+    CC: clang
+    ARCH_FLAGS: -march=skylake -mno-avx -mno-avx2 -mno-avx512f
+    CI_PATH: /home/runner/work/_temp/gkeyll-ci
+    CI_LOG_DIR: /home/runner/work/_temp/gkeyll-ci-logs
+    CI_JOBS: 4
+Error: $GITHUB_STEP_SUMMARY upload aborted, supports content up to a size of 1024k, got 2311k. For more information see: https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-markdown-summary
+
+---
+
+CI gave this error during the log. Please fix this. The point of the summary is a consise document for all the warnings, errors, explanations. We can dump this directly into the terminal instead of writing a file if the file is too big. 
+
+Run if [ -f "$CI_LOG_DIR/summary.txt" ]; then
+  if [ -f "$CI_LOG_DIR/summary.txt" ]; then
+    {
+      echo '```text'
+      cat "$CI_LOG_DIR/summary.txt"
+      echo '```'
+    } >> "$GITHUB_STEP_SUMMARY"
+  fi
+  shell: /usr/bin/bash -e {0}
+  env:
+    CC: clang
+    ARCH_FLAGS: -march=skylake -mno-avx -mno-avx2 -mno-avx512f
+    CI_PATH: /home/runner/work/_temp/gkeyll-ci
+    CI_LOG_DIR: /home/runner/work/_temp/gkeyll-ci-logs
+    CI_JOBS: 4
+Error: $GITHUB_STEP_SUMMARY upload aborted, supports content up to a size of 1024k, got 2311k. For more information see: https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-markdown-summary
