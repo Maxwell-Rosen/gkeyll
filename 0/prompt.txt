@@ -1,5 +1,15 @@
-For the ubuntu-latest build, make sure to use a march flag that supports valgrind. For instance, on my laptop I use skylake. Maybe using x86-64-v4 is best.
+The dependencies also need to be compilied without avx512 for valgrind. Valgrind has an issue where it does not support AVX512 instruction sets. If your CPU supports AVX512, you will need to disable it when compiling Gkeyll. Valgrind does not work with a GPU build and you need a CPU build.
 
----
+A few modifications must be made.
 
-For the ubuntu-latest build, make sure to use a march flag that supports valgrind. For instance, on my laptop I use skylake. Maybe using x86-64-v4 is best.
+First, in install-deps/build-openblas.sh change these lines
+
+make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 NO_AVX512=1 -j 32
+make USE_OPENMP=0 NUM_THREADS=1 NO_FORTRAN=1 NO_AVX512=1 install PREFIX=$PREFIX -j 32
+Now re-run mkdeps.sh to rebuild OpenBLAS
+
+Second, within config.mak, set the march to “skylake”, which disables AVX512
+
+Third, inside the makefile, make sure that the march is skylake and add the following options
+
+CFLAGS ?= -mno-avx -mno-avx2 -mno-avx512f
