@@ -1,0 +1,15 @@
+I'd like to have CI refactored with a master bash script to orchestrate in the following way. I made a post on Slack regarding this. Implement a minimal version so that we can test on ubuntu-latest. I want the ubuntu-latest build to be modular, but a bash interface that we can run locally.
+
+For example, we could have a master bash script like
+bash ci/run.sh --build_deps --machine linux (--path defaults to ~/gkylsoft/build_<time+date>, but /tmp auto cleans itsself) (--skip_valcheck, --skip_runregression, --pr [int], --commit [string])And this bash script builds dependencies on --machine  at --path, builds everything, runs make unit, regression, and valcheck for every module, and runs the full regression system. The GH actions can separate this out into different steps so it has different views and has more modularity, such as
+     # Vlasov module
+      - name: Build vlasov-unit
+        run: ci/make-module.sh vlasov unit
+      - name: Build vlasov-regression
+        run: ci/make-module.sh vlasov regression
+      - name: Test vlasov-valcheck
+        run: ci/make-valcheck.sh vlasovWe can have this push a commit status to that commit on github with an optional flag (probably needs a github key that we .gitignore).
+There can be another ci/runregression-against-main.sh that separately builds main, establishes the baseline, and we compare against that. (edited) 
+Maxwell Rosen  [2:06 PM]
+On perlmutter, we could do
+bash ci/run.sh --build_deps --machine perlmutter --account #### (--interactive runs in an interactive job, --cpu/--gpu is cpu by default but allows GPU builds)These scripts can write a log file somewhere (inside ci/, in gkylsoft? It should be separate so we can rm the builds without removing logs). Maybe this log is a .html and is interactive (but for compatibility it should be readable in plain text). Putting a concise summary at the top would be helpful, simply indicating the named unit/regression tests that failed (edited)
