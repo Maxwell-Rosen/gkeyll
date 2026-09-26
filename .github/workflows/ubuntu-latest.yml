@@ -19,11 +19,13 @@ jobs:
   build:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    env:
-      CI_PATH: ${{ runner.temp }}/gkeyll-ci
-      CI_LOG_DIR: ${{ runner.temp }}/gkeyll-ci-logs
 
     steps:
+      - name: Set CI paths
+        run: |
+          echo "CI_PATH=$RUNNER_TEMP/gkeyll-ci" >> "$GITHUB_ENV"
+          echo "CI_LOG_DIR=$RUNNER_TEMP/gkeyll-ci-logs" >> "$GITHUB_ENV"
+
       - uses: actions/checkout@v4
 
       - name: Check CI orchestration
